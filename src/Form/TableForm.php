@@ -26,6 +26,18 @@ class TableForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
+    $num = $form_state->get("num");
+    if (empty($num)) {
+      $num = 0;
+      $form_state->set("num", $num);
+    }
+
+    $form["actions"]["addRow"] = [
+      "#type" => "submit",
+      "#default_value" => "Add row",
+      "#submit" => ["::addRowCallback"],
+    ];
+
     $form["table"] = [
       "#type" => "table",
       "#header" => [
@@ -49,12 +61,10 @@ class TableForm extends FormBase {
         "YTD",
       ],
     ];
-
-    $x = 0;
-    for ($i = 0; $i <= $x; $i++) {
+    for ($i = 0; $i <= $num; $i++) {
       $form["table"][$i]["Year"] = [
         '#type' => 'textfield',
-        "#default_value" => "2022",
+        "#default_value" => 2022 - $i,
       ];
 
       $form["table"][$i]["YTD"] = $form["table"][$i]["Q4"] = $form["table"][$i]["Dec"] = $form["table"][$i]["Nov"] = $form["table"][$i]["Oct"] =
@@ -80,4 +90,10 @@ class TableForm extends FormBase {
     // TODO: Implement submitForm() method.
   }
 
+  public function addRowCallback(array &$form, FormStateInterface $form_state) {
+    $num = $form_state->get("num");
+    $num++;
+    $form_state->set("num", $num);
+    $form_state->setRebuild();
+  }
 }
