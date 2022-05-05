@@ -23,9 +23,10 @@ class PabloController extends ControllerBase {
    *   A renderable array.
    */
   public function content() {
-
+    $tableForm = \Drupal::formBuilder()->getForm("Drupal\pablo\Form\TableForm");
     return [
       "#theme" => "pablo_template",
+      "#form" => $tableForm,
     ];
   }
 

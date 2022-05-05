@@ -4,3 +4,16 @@
  * @file
  * A description of what your module does.
  */
+
+/**
+ * Implements hook_theme().
+ */
+function pablo_theme($existing, $type, $theme, $path) {
+  return [
+    "pablo_template" => [
+      "variables" => [
+        "form" => NULL,
+      ],
+    ],
+  ];
+}

@@ -1,0 +1,6 @@
+guestbook.content:
+  path: '/pablo'
+  defaults:
+    _controller: '\Drupal\pablo\Controller\PabloController::content'
+  requirements:
+    _permission: 'access content'
