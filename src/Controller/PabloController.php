@@ -9,6 +9,8 @@ namespace Drupal\pablo\Controller;
  * @return
  */
 
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\AppendCommand;
 use Drupal\Core\Controller\ControllerBase;
 
 /**
@@ -28,6 +30,13 @@ class PabloController extends ControllerBase {
       "#theme" => "pablo_template",
       "#form" => $tableForm,
     ];
+  }
+
+
+  public function addForm() {
+    $response = new AjaxResponse();
+    $response->addCommand(new AppendCommand(".pablo-forms", \Drupal::formBuilder()->getForm("Drupal\pablo\Form\TableForm")));
+    return $response;
   }
 
 }

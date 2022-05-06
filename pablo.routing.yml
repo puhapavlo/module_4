@@ -1,6 +1,13 @@
-guestbook.content:
+pablo.content:
   path: '/pablo'
   defaults:
     _controller: '\Drupal\pablo\Controller\PabloController::content'
+  requirements:
+    _permission: 'access content'
+
+pablo.addForm:
+  path: '/pablo/add-form'
+  defaults:
+    _controller: '\Drupal\pablo\Controller\PabloController::addForm'
   requirements:
     _permission: 'access content'
