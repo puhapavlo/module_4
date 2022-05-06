@@ -34,7 +34,7 @@ class TableForm extends FormBase {
 
     $form["actions"]["addRow"] = [
       "#type" => "submit",
-      "#default_value" => "Add row",
+      "#value" => $this->t("Add row"),
       "#submit" => ["::addRowCallback"],
     ];
 
@@ -64,7 +64,7 @@ class TableForm extends FormBase {
     for ($i = 0; $i <= $num; $i++) {
       $form["table"][$i]["Year"] = [
         '#type' => 'textfield',
-        "#default_value" => 2022 - $i,
+        "#value" => 2022 - $i,
       ];
 
       $form["table"][$i]["YTD"] = $form["table"][$i]["Q4"] = $form["table"][$i]["Dec"] = $form["table"][$i]["Nov"] = $form["table"][$i]["Oct"] =
@@ -80,6 +80,11 @@ class TableForm extends FormBase {
       ];
     }
 
+    $form["actions"]["submit"] = [
+      "#type" => "submit",
+      "#value" => $this->t("Submit"),
+    ];
+
     return $form;
   }
 
@@ -87,13 +92,22 @@ class TableForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // TODO: Implement submitForm() method.
+    \Drupal::messenger()->addMessage("Valid");
   }
 
+  /**
+   * Callback for button "Add row".
+   *
+   * @param array $form
+   *   An associative array containing the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   */
   public function addRowCallback(array &$form, FormStateInterface $form_state) {
     $num = $form_state->get("num");
     $num++;
     $form_state->set("num", $num);
     $form_state->setRebuild();
   }
+
 }
