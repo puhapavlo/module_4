@@ -1,13 +1,6 @@
 pablo.content:
   path: '/pablo'
   defaults:
-    _controller: '\Drupal\pablo\Controller\PabloController::content'
-  requirements:
-    _permission: 'access content'
-
-pablo.addForm:
-  path: '/pablo/add-form'
-  defaults:
-    _controller: '\Drupal\pablo\Controller\PabloController::addForm'
+    _form: '\Drupal\pablo\Form\TableForm'
   requirements:
     _permission: 'access content'

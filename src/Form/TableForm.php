@@ -2,6 +2,8 @@
 
 namespace Drupal\pablo\Form;
 
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 
@@ -15,10 +17,14 @@ use Drupal\Core\Form\FormStateInterface;
  */
 class TableForm extends FormBase {
 
+  protected int $rows = 1;
+
+  protected int  $tables = 1;
   /**
    * {@inheritdoc}
    */
   public function getFormId() {
+
     return "table_form";
   }
 
@@ -26,59 +32,16 @@ class TableForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $num = $form_state->get("num");
-    if (empty($num)) {
-      $num = 0;
-      $form_state->set("num", $num);
-    }
+    $form["#prefix"] = "<div id='table-wrapper'>";
+    $form["#suffix"] = "</div>";
 
-    $form["actions"]["addRow"] = [
-      "#type" => "submit",
-      "#value" => $this->t("Add row"),
-      "#submit" => ["::addRowCallback"],
+    $this->createTable($form, $form_state);
+
+    $form["addTable"] = [
+      "#type" => 'submit',
+      "#value" => $this->t("Add Table"),
+      "#submit" => ["::addTable"],
     ];
-
-    $form["table"] = [
-      "#type" => "table",
-      "#header" => [
-        "Year",
-        "Jan",
-        "Feb",
-        "Mar",
-        "Q1",
-        "Apr",
-        "May",
-        "Jun",
-        "Q2",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Q3",
-        "Oct",
-        "Nov",
-        "Dec",
-        "Q4",
-        "YTD",
-      ],
-    ];
-    for ($i = 0; $i <= $num; $i++) {
-      $form["table"][$i]["Year"] = [
-        '#type' => 'textfield',
-        "#value" => 2022 - $i,
-      ];
-
-      $form["table"][$i]["YTD"] = $form["table"][$i]["Q4"] = $form["table"][$i]["Dec"] = $form["table"][$i]["Nov"] = $form["table"][$i]["Oct"] =
-      $form["table"][$i]["Q3"] = $form["table"][$i]["Sep"] = $form["table"][$i]["Aug"] = $form["table"][$i]["Jul"] = $form["table"][$i]["Q2"] =
-      $form["table"][$i]["Jun"] = $form["table"][$i]["May"] = $form["table"][$i]["Apr"] = $form["table"][$i]["Q1"] = $form["table"][$i]["Mar"] =
-      $form["table"][$i]["Feb"] = $form["table"][$i]["Jan"] = [
-        "#type" => "textfield",
-      ];
-
-      $form["table"][$i]["Year"]["#attributes"] = $form["table"][$i]["Q1"]["#attributes"] = $form["table"][$i]["Q2"]["#attributes"] = $form["table"][$i]["Q3"]["#attributes"] =
-      $form["table"][$i]["Q4"]["#attributes"] = $form["table"][$i]["YTD"]["#attributes"] = [
-        "readonly" => "readonly",
-      ];
-    }
 
     $form["actions"]["submit"] = [
       "#type" => "submit",
@@ -86,6 +49,63 @@ class TableForm extends FormBase {
     ];
 
     return $form;
+  }
+
+  public function createTable(array &$form, FormStateInterface $form_state) {
+    $headerTable = [
+      'year' => $this->t('Year'),
+      'jan' => $this->t('Jan'),
+      'feb' => $this->t('Feb'),
+      'mar' => $this->t('Mar'),
+      'q1' => $this->t('Q1'),
+      'apr' => $this->t('Apr'),
+      'may' => $this->t('May'),
+      'jun' => $this->t('Jun'),
+      'q2' => $this->t('Q2'),
+      'jul' => $this->t('Jul'),
+      'aug' => $this->t('Aug'),
+      'sep' => $this->t('Sep'),
+      'q3' => $this->t('Q3'),
+      'oct' => $this->t('Oct'),
+      'nov' => $this->t('Nov'),
+      'dec' => $this->t('Dec'),
+      'q4' => $this->t('Q4'),
+      'ytd' => $this->t('YTD'),
+    ];
+
+    for ($i = 0; $i < $this->tables; $i++) {
+      $form["addRow"] = [
+        "#type" => "submit",
+        "#value" => "Add row",
+        "#submit" => ["::addRow"],
+      ];
+
+      $form["table"] = [
+        "#type" => "table",
+        "#header" => $headerTable,
+      ];
+
+      for ($i = $this->rows; $i > 0; $i--) {
+        foreach ($headerTable as $header) {
+          $form["table"]["rows"]["$header"] = [
+            "#type" => "number",
+          ];
+
+          if (in_array("$header", ["Q1", "Q2", "Q3", "Q4", "YTD"])) {
+            $form["table"]["rows"]["$header"] = [
+              "#type" => "number",
+              "#disabled" => TRUE,
+            ];
+          }
+        }
+
+        $form["table"]["rows"]['Year'] = [
+          '#type' => 'number',
+          '#disabled' => TRUE,
+          '#default_value' => date('Y') - $i + 1,
+        ];
+      }
+    }
   }
 
   /**
@@ -104,10 +124,7 @@ class TableForm extends FormBase {
    *   The current state of the form.
    */
   public function addRowCallback(array &$form, FormStateInterface $form_state) {
-    $num = $form_state->get("num");
-    $num++;
-    $form_state->set("num", $num);
-    $form_state->setRebuild();
+    return $form["wrapper"];
   }
 
 }
