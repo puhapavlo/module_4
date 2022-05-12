@@ -41,12 +41,28 @@ class TableForm extends FormBase {
       "#type" => "submit",
       "#value" => $this->t("Add Table"),
       "#submit" => ["::addTable"],
+      "#attributes" => [
+        "class" => [
+          "table-btn",
+        ],
+      ],
     ];
 
     $form["actions"]["submit"] = [
       "#type" => "submit",
       "#name" => "submit",
       "#value" => $this->t("Submit"),
+      '#ajax' => [
+        'event' => 'click',
+        'progress' => 'none',
+        'callback' => '::ajaxRefresh',
+        'wrapper' => 'table-form',
+      ],
+      "#attributes" => [
+        "class" => [
+          "table-btn",
+        ],
+      ],
     ];
 
     return $form;
@@ -80,23 +96,43 @@ class TableForm extends FormBase {
         "#value" => "Add row",
         "#submit" => ["::addRow"],
         "#name" => $i,
+        "#attributes" => [
+          "class" => [
+            "table-btn",
+          ],
+        ],
       ];
 
       $form["table_$i"] = [
         "#type" => "table",
         "#header" => $headerTable,
+        "#attributes" => [
+          "class" => [
+            "table",
+          ],
+        ],
       ];
 
       for ($t = 0; $t < $this->rows[$i]; $t++) {
         foreach ($headerTable as $header) {
           $form["table_$i"]["rows_$t"]["$header"] = [
             "#type" => "number",
+            "#attributes" => [
+              "class" => [
+                "table-input",
+              ],
+            ],
           ];
 
           if (in_array("$header", ["Q1", "Q2", "Q3", "Q4", "YTD"])) {
             $form["table_$i"]["rows_$t"]["$header"] = [
               "#type" => "number",
               "#disabled" => TRUE,
+              "#attributes" => [
+                "class" => [
+                  "table-input",
+                ],
+              ],
             ];
           }
         }
@@ -105,9 +141,16 @@ class TableForm extends FormBase {
           '#type' => 'number',
           '#disabled' => TRUE,
           '#default_value' => date('Y') - $t,
+          "#attributes" => [
+            "class" => [
+              "table-input",
+            ],
+          ],
         ];
       }
     }
+
+    $form["#attached"]["library"][] = "pablo/global";
     return $form;
   }
 
@@ -180,6 +223,7 @@ class TableForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     if ($form_state->getErrors()) {
       $form_state->clearErrors();
+      $this->messenger()->addStatus("Invalid");
     }
     else {
       for ($i = 0; $i < $this->tables; $i++) {
@@ -215,6 +259,10 @@ class TableForm extends FormBase {
       }
       $this->messenger()->addStatus("Valid");
     }
+  }
+
+  public function ajaxRefresh(array $form, FormStateInterface $form_state) {
+    return $form;
   }
 
 }
