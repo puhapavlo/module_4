@@ -17,9 +17,10 @@ use Drupal\Core\Form\FormStateInterface;
  */
 class TableForm extends FormBase {
 
-  protected int  $tables = 1;
+  protected $tables = 1;
 
-  protected array $rows = [1];
+  protected $rows = [1];
+
   /**
    * {@inheritdoc}
    */
@@ -116,6 +117,7 @@ class TableForm extends FormBase {
     $form_state->setRebuild();
     return $form;
   }
+
   public function addRow(array $form, FormStateInterface $form_state) {
     $i = $form_state->getTriggeringElement()['#name'];
     $this->rows[$i]++;
@@ -137,6 +139,10 @@ class TableForm extends FormBase {
 
       for ($t = 1; $t <= $this->rows[$i]; $t++) {
         foreach (array_reverse($tablesValues["table_$i"]["rows_$t"]) as $key => $k) {
+          if (in_array("$key", ['Year', 'Q1', 'Q2', 'Q3', 'Q4', 'YTD'])) {
+            goto end;
+          }
+
           if ($t <= $this->rows[$minRow]) {
             if (!$hasValue && !$hasEmpty && $k !== "") {
               $hasValue = TRUE;
@@ -146,23 +152,24 @@ class TableForm extends FormBase {
               $hasEmpty = TRUE;
             }
 
-            if ($hasValue && $hasEmpty && $i !== "") {
+            if ($hasValue && $hasEmpty && $k !== "") {
               $form_state->setErrorByName('Invalid', "Invalid");
             }
 
-            if ($tablesValues["table_$minRow"]["rows_$t"][$key] == "" && $i !== "" ||
-              $tablesValues["table_$minRow"]["rows_$t"][$key] !== "" && $i == "") {
-              $form_state->setErrorByName( 'Invalid', "Invalid");
+            if ($tablesValues["table_$minRow"]["rows_$t"][$key] == "" && $k !== "" ||
+              $tablesValues["table_$minRow"]["rows_$t"][$key] !== "" && $k == "") {
+              $form_state->setErrorByName('Invalid', "Invalid");
             }
           }
 
-          elseif ($i !== "") {
-            $form_state->setErrorByName( 'Invalid', "Invalid");
+          elseif ($k !== "") {
+            $form_state->setErrorByName('Invalid', "Invalid");
           }
+          end:
         }
-        if (!$hasValue && !$hasEmpty) {
-          $form_state->setErrorByName('Invalid', "Invalid");
-        }
+      }
+      if (!$hasValue && !$hasEmpty) {
+        $form_state->setErrorByName('Invalid', 'Invalid');
       }
     }
   }
@@ -171,19 +178,43 @@ class TableForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $this->messenger()->addStatus("Valid");
-  }
-
-  /**
-   * Callback for button "Add row".
-   *
-   * @param array $form
-   *   An associative array containing the structure of the form.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The current state of the form.
-   */
-  public function refreshAjax(array &$form, FormStateInterface $form_state) {
-    return $form;
+    if ($form_state->getErrors()) {
+      $form_state->clearErrors();
+    }
+    else {
+      for ($i = 0; $i < $this->tables; $i++) {
+        for ($t = 0; $t <= $this->rows[$i]; $t++) {
+          $value = $form_state->getValue(["table_$i", "rows_$t"]);
+          $q1 = $q2 = $q3 = $q4 = 0;
+          if ($value['Jan'] != "" || $value['Feb'] != "" || $value['Mar'] != "") {
+            $q1 = (int) $value['Jan'] + (int) $value['Feb'] + (int) $value['Mar'];
+            $q1 = round(($q1 + 1) / 3, 2);
+            $form["table_$i"]["rows_$t"]['Q1']['#value'] = $q1;
+          }
+          if ($value['Apr'] != "" || $value['May'] != "" || $value['Jun'] != "") {
+            $q2 = (int) $value['Apr'] + (int) $value['May'] + (int) $value['Jun'];
+            $q2 = round(($q2 + 1) / 3, 2);
+            $form["table_$i"]["rows_$t"]['Q2']['#value'] = $q2;
+          }
+          if ($value['Jul'] != "" || $value['Aug'] != "" || $value['Sep'] != "") {
+            $q3 = (int) $value['Jul'] + (int) $value['Aug'] + (int) $value['Sep'];
+            $q3 = round(($q3 + 1) / 3, 2);
+            $form["table_$i"]["rows_$t"]['Q3']['#value'] = $q3;
+          }
+          if ($value['Oct'] != "" || $value['Nov'] != "" || $value['Dec'] != "") {
+            $q4 = (int) $value['Oct'] + (int) $value['Nov'] + (int) $value['Dec'];
+            $q4 = round(($q4 + 1) / 3, 2);
+            $form["table_$i"]["rows_$t"]['Q4']['#value'] = $q4;
+          }
+          if ($q1 || $q2 || $q3 || $q4) {
+            $ytd = $q1 + $q2 + $q3 + $q4;
+            $ytd = round(($ytd + 1) / 4, 2);
+            $form["table_$i"]["rows_$t"]['YTD']['#value'] = $ytd;
+          }
+        }
+      }
+      $this->messenger()->addStatus("Valid");
+    }
   }
 
 }
