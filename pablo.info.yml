@@ -1,5 +1,5 @@
 name: Pablo
 type: module
 package: Custom
-description: "A description of what your module does."
+description: "This module adds a table."
 core_version_requirement: ^9
